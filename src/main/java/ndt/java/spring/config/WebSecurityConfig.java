@@ -11,7 +11,7 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 public class WebSecurityConfig {
 	
-	static String[] LIST_MATCHER ={"/",""};
+	static String[] LIST_MATCHER ={"/*",""};
 	
 	@Bean
 	/*Because we don’t use classic web so disable CSRF and no session management needed*/
