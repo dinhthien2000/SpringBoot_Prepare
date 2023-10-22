@@ -25,6 +25,13 @@ public class User {
 	
 	@Column(nullable = false, length = 64)
 	private String password;
+
+	public User(String email, String password) {
+		super();
+		this.email = email;
+		this.password = password;
+	}
+	
 	
 	
 }
