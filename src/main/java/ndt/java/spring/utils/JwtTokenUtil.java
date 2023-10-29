@@ -16,7 +16,7 @@ public class JwtTokenUtil {
 	
 	private final static long EXPIRE_DURATION = 24*60*60*1000; // The token should expire after 24 hours
 	
-	@Value("${app.jwt.secrect}") // specify in the application.properties file
+	@Value("${app.jwt.secret}") // specify in the application.properties file
 	private String SECRET_KEY;
 	
 	 private Key key() {
