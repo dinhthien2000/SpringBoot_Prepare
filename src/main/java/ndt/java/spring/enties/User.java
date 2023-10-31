@@ -15,12 +15,13 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 @Entity
 @Table(name = "users")
 @Getter @Setter
 @NoArgsConstructor @AllArgsConstructor
-
+@ToString
 /*
  * we need to update the User class to implement the UserDetails 
  * interface as required by Spring Security:

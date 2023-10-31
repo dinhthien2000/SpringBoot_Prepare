@@ -1,5 +1,6 @@
 package ndt.java.spring.controller;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 
 import org.springframework.http.ResponseEntity;
@@ -7,6 +8,8 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -17,14 +20,18 @@ import lombok.RequiredArgsConstructor;
 import ndt.java.spring.dto.AuthenRequest;
 import ndt.java.spring.dto.AuthenResponse;
 import ndt.java.spring.enties.User;
+import ndt.java.spring.repository.UserRepository;
+import ndt.java.spring.utils.ColorSysoutUtil;
 import ndt.java.spring.utils.JwtTokenUtil;
 
 @RestController
 @RequiredArgsConstructor
 public class AuthenAPI {
 
-	final AuthenticationManager authenticationManager;
-	final JwtTokenUtil jwtUtil;
+	final private AuthenticationManager authenticationManager;
+	final private JwtTokenUtil jwtUtil;
+	final private UserRepository repository;
+
 
 	/*
 	 * Ở đây, URI là /auth/login và chúng tôi sử dụng trình quản lý xác thực để xác
@@ -43,7 +50,9 @@ public class AuthenAPI {
 			Authentication authencation = authenticationManager
 					.authenticate(new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
 			User user = (User) authencation.getPrincipal();
+			System.out.println(ColorSysoutUtil.GREEN_BOLD + user.toString() + ColorSysoutUtil.RESET);
 			String accessToken = jwtUtil.generateAccessToken(user);
+			System.out.println(accessToken);
 			AuthenResponse response = new AuthenResponse(user.getEmail(), accessToken);
 
 			return ResponseEntity.ok(response);
@@ -53,4 +62,17 @@ public class AuthenAPI {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 		}
 	}
+	
+	
+	@GetMapping("/auth/signup")
+	public ResponseEntity<?> signUp() {
+		BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+		String password = encoder.encode("Abc@1234");
+		
+		User user = new User("ndtjava@gmail.com",password);
+		User newUser = repository.save(user);
+		
+		return ResponseEntity.ok(newUser);
+	}
+
 }

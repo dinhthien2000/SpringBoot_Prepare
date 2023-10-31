@@ -22,7 +22,7 @@ import ndt.java.spring.repository.UserRepository;
 @RequiredArgsConstructor
 public class WebSecurityConfig {
 	
-	static String[] LIST_MATCHER ={"/*"};
+	static String[] LIST_MATCHER ={"/*","/auth/signup","/auth/login"};
 	
 	final UserRepository repository;
 	
