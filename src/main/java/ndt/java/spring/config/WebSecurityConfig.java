@@ -22,7 +22,7 @@ import ndt.java.spring.repository.UserRepository;
 @RequiredArgsConstructor
 public class WebSecurityConfig {
 	
-	static String[] LIST_MATCHER ={"/*","/auth/signup","/auth/login"};
+	static String[] LIST_MATCHER ={"/","/auth/signup","/auth/login","/hello","/index"};
 	
 	final UserRepository repository;
 	
@@ -30,7 +30,10 @@ public class WebSecurityConfig {
 	/*Because we don’t use classic web so disable CSRF and no session management needed*/
 	public SecurityFilterChain securityFilterChain (HttpSecurity http) throws Exception {
 		return http.csrf(c->c.disable())
-			.authorizeHttpRequests(auth->auth.requestMatchers(LIST_MATCHER).permitAll())
+			.authorizeHttpRequests(
+					auth->auth.requestMatchers(LIST_MATCHER).permitAll()
+							  .anyRequest().authenticated()	
+					)
 			.sessionManagement(t -> t.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 			.build();
 	}

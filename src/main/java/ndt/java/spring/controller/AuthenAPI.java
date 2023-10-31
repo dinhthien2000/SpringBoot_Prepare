@@ -47,9 +47,11 @@ public class AuthenAPI {
 	@PostMapping("/auth/login")
 	public ResponseEntity<?> login(@RequestBody @Valid AuthenRequest request) {
 		try {
+			// Create Authentication object ( gồm Object principal (username), Object credentials (passwrord)) 
+			// from request and  with username and password
 			Authentication authencation = authenticationManager
 					.authenticate(new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
-			User user = (User) authencation.getPrincipal();
+			User user = (User) authencation.getPrincipal(); // authentication request with username and password
 			System.out.println(ColorSysoutUtil.GREEN_BOLD + user.toString() + ColorSysoutUtil.RESET);
 			String accessToken = jwtUtil.generateAccessToken(user);
 			System.out.println(accessToken);
