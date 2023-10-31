@@ -18,6 +18,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import ndt.java.spring.enties.User;
+import ndt.java.spring.utils.ColorSysoutUtil;
 import ndt.java.spring.utils.JwtTokenUtil;
 
 @Component
@@ -58,12 +59,16 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 	}
 	
 	private boolean hasAuthorizationBearer(HttpServletRequest request) {
+		boolean flag = true;
 		String header = request.getHeader("Authorization");
 		
 		// nếu header Authorization dùng để xác thực không có ở header (null)
 		// và nếu có header Authorization mà giá trị header không bắt đầu bằng Bearer thì sẽ trả về false 
 		// còn ngược lại header Authorization có giá trị (null) và value có Bearer là true
-		return !ObjectUtils.isEmpty(header) || header.startsWith("Bearer");
+		if(ObjectUtils.isEmpty(header) || !header.startsWith("Bearer")) {
+			flag = false;
+		}
+		return flag;
 	}
 	
 	private String getAccessToken(HttpServletRequest request) {

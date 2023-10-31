@@ -2,9 +2,12 @@ package ndt.java.spring.utils;
 
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
+import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+
+import javax.crypto.SecretKey;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,8 +29,11 @@ public class JwtTokenUtil {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(JwtTokenUtil.class);
 
+	private SecretKey key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+	
 	private Key key() {
-		return Keys.hmacShaKeyFor(this.SECRET_KEY.getBytes(StandardCharsets.UTF_8));
+		// return Keys.hmacShaKeyFor(this.SECRET_KEY.getBytes());
+		return Keys.hmacShaKeyFor(Base64.getDecoder().decode(SECRET_KEY));
 	}
 
 	// JJwt need Key object to set signWith method
