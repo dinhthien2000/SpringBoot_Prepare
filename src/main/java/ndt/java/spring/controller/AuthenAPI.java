@@ -48,10 +48,10 @@ public class AuthenAPI {
 	public ResponseEntity<?> login(@RequestBody @Valid AuthenRequest request) {
 		try {
 			// Create Authentication object ( gồm Object principal (username), Object credentials (passwrord)) 
-			// from request and  with username and password
+			// from request  with username and password parameters
 			Authentication authencation = authenticationManager
 					.authenticate(new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
-			User user = (User) authencation.getPrincipal(); // authentication request with username and password
+			User user = (User) authencation.getPrincipal(); // authentication request with username and password, getPrincipal() có thể lấy được thông tin user được truyền vào
 			System.out.println(ColorSysoutUtil.GREEN_BOLD + user.toString() + ColorSysoutUtil.RESET);
 			String accessToken = jwtUtil.generateAccessToken(user);
 			System.out.println(accessToken);
@@ -66,8 +66,8 @@ public class AuthenAPI {
 	}
 	
 	
-	@GetMapping("/auth/signup")
-	public ResponseEntity<?> signUp() {
+	@GetMapping("/auth/signup/default")
+	public ResponseEntity<?> signUpDefault() {
 		BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 		String password = encoder.encode("Abc@1234");
 		
@@ -77,4 +77,14 @@ public class AuthenAPI {
 		return ResponseEntity.ok(newUser);
 	}
 
+	@GetMapping("/auth/signup")
+	public ResponseEntity<?> signUp(String username, String password) {
+		BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+		// String password = encoder.encode("Abc@1234");
+		
+		User user = new User(username,encoder.encode(password));
+		User newUser = repository.save(user);
+		
+		return ResponseEntity.ok(newUser);
+	}
 }
