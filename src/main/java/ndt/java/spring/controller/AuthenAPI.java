@@ -87,4 +87,16 @@ public class AuthenAPI {
 		
 		return ResponseEntity.ok(newUser);
 	}
+	
+	@PostMapping("/auth/signup")
+	public ResponseEntity<?> signUp(@RequestBody @Valid User user) {
+		BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+		// String password = encoder.encode("Abc@1234");
+		
+		// User user = new User(username,encoder.encode(password));
+		user.setPassword(encoder.encode(user.getPassword()));
+		User newUser = repository.save(user);
+		AuthenResponse response = new AuthenResponse(newUser.getEmail(), "Singup success !!");
+		return ResponseEntity.ok(response);
+	}
 }
