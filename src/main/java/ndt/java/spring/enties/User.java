@@ -74,6 +74,18 @@ public class User implements UserDetails{
 		return authorities;
 	}
 
+	public Set<Role> getRoles() {
+        return roles;
+    }
+ 
+    public void setRoles(Set<Role> roles) {
+        this.roles = roles;
+    }
+     
+    public void addRole(Role role) {
+        this.roles.add(role);
+    }
+	
 	@Override
 	public String getUsername() {
 		// TODO Auto-generated method stub
