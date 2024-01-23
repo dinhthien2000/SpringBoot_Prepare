@@ -12,11 +12,13 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import ndt.java.spring.enties.Role;
 import ndt.java.spring.enties.User;
 import ndt.java.spring.utils.ColorSysoutUtil;
 import ndt.java.spring.utils.JwtTokenUtil;
@@ -29,78 +31,117 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 
 	/*
 	 * 
-	 * Here, this filter class extends the OncePerRequestFilter class to guarantee a single execution per request. When it comes into play, the doFilterInternal() method gets invoked. Here’s how it works:
-			+ If the Authorization header of the request doesn’t contain a Bearer token, it continues the filter chain without updating authentication context.
-			+ Else, if the token is not verified, continue the filter chain without updating authentication context.
-			+ If the token is verified, update the authentication context with the user details ID and email. In other words, it tells Spring that the user is authenticated, and continue the downstream filters.
+	 * Here, this filter class extends the OncePerRequestFilter class to guarantee a
+	 * single execution per request. When it comes into play, the doFilterInternal()
+	 * method gets invoked. Here’s how it works: + If the Authorization header of
+	 * the request doesn’t contain a Bearer token, it continues the filter chain
+	 * without updating authentication context. + Else, if the token is not
+	 * verified, continue the filter chain without updating authentication context.
+	 * + If the token is verified, update the authentication context with the user
+	 * details ID and email. In other words, it tells Spring that the user is
+	 * authenticated, and continue the downstream filters.
 	 * 
 	 * 
 	 * 
-	 * */
+	 */
 	final JwtTokenUtil jwtTokenUtil;
-	
+
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
 			throws ServletException, IOException {
 		// TODO Auto-generated method stub
 		if (!hasAuthorizationBearer(request)) {
-			filterChain.doFilter(request, response); // Causes the next filter in the chain to be invoked, or if the calling filter is the last filter in the chain,causes the resource at the end of the chain to be invoked.
+			filterChain.doFilter(request, response); // Causes the next filter in the chain to be invoked, or if the
+														// calling filter is the last filter in the chain,causes the
+														// resource at the end of the chain to be invoked.
 			return; // nếu không đạt yêu cầu header Authorization thì false ở filter này
 		}
-		
+
 		String token = getAccessToken(request); // lấy token từ header request
 		if (!jwtTokenUtil.validateAccessToken(token)) {
 			filterChain.doFilter(request, response);
 			return; // nếu token không hợp lệ thì false ở filter này
 		}
-		
-		setAuthencationContext(token, request); // thiết lập cấu hình context để token có thể sử dụng lần sau, nếu chưa hết hạn token
+
+		setAuthencationContext(token, request); // thiết lập cấu hình context để token có thể sử dụng lần sau, nếu chưa
+												// hết hạn token
 		filterChain.doFilter(request, response);
 	}
-	
+
 	private boolean hasAuthorizationBearer(HttpServletRequest request) {
 		boolean flag = true;
 		String header = request.getHeader("Authorization");
-		
+
 		// nếu header Authorization dùng để xác thực không có ở header (null)
-		// và nếu có header Authorization mà giá trị header không bắt đầu bằng Bearer thì sẽ trả về false 
-		// còn ngược lại header Authorization có giá trị (null) và value có Bearer là true
-		if(ObjectUtils.isEmpty(header) || !header.startsWith("Bearer")) {
+		// và nếu có header Authorization mà giá trị header không bắt đầu bằng Bearer
+		// thì sẽ trả về false
+		// còn ngược lại header Authorization có giá trị (null) và value có Bearer là
+		// true
+		if (ObjectUtils.isEmpty(header) || !header.startsWith("Bearer")) {
 			flag = false;
 		}
 		return flag;
 	}
-	
+
 	private String getAccessToken(HttpServletRequest request) {
 		String header = request.getHeader("Authorization");
 		String token = header.split(" ")[1].trim();
 		return token;
 	}
-	
+
 	// context : ngữ cảnh
 	private void setAuthencationContext(String token, HttpServletRequest request) {
 		UserDetails userDetails = getUserDetails(token);
-		
+
+		// grant value only principal
+//		UsernamePasswordAuthenticationToken authenticationToken =
+//				new UsernamePasswordAuthenticationToken(userDetails, null, null); // principal, credentials, authorities
+
+		// grant value principal, authorities
 		UsernamePasswordAuthenticationToken authenticationToken =
-				new UsernamePasswordAuthenticationToken(userDetails, null, null); // principal, credentials, authorities 
+				new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities()); // principal, credentials, authorities
 		
-		// Triển khai AuthenticationDetailsSource để xây dựng đối tượng chi tiết từ đối tượng HttpServletRequest, tạo WebAuthenticationDetails
-		authenticationToken.setDetails(
-				new WebAuthenticationDetailsSource().buildDetails(request)
-				);
-		
-		// lấy context spring secutiry hiện tại (lấy cấu hình), sau đó thực hiện việc thiết lập jwt token vào filter để xác thực token ở header của request xem có đúng không mới cho qua bộ lọc JwtTokenFilter này 
+		// Triển khai AuthenticationDetailsSource để xây dựng đối tượng chi tiết từ đối
+		// tượng HttpServletRequest, tạo WebAuthenticationDetails
+		authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+		// lấy context spring secutiry hiện tại (lấy cấu hình), sau đó thực hiện việc
+		// thiết lập jwt token vào filter để xác thực token ở header của request xem có
+		// đúng không mới cho qua bộ lọc JwtTokenFilter này
 		SecurityContextHolder.getContext().setAuthentication(authenticationToken);
-	
+
 	}
-	
+
+	// getUserDetails used to only authen
+//	private UserDetails getUserDetails(String token) {
+//		User userDetail = new User(); // tạo đối tượng user để thiết lập thuộc tính để trả về khi phân tích jwt token
+//		String[] subjectToken = jwtTokenUtil.getSubject(token).split(","); // vì subject của token được tạo ra với chuỗi ghép giữa id,email (VD: 1,thien@gmail.com)
+//		
+//		userDetail.setId(Integer.parseInt(subjectToken[0])); // thiết lập id từ subject của jwt token cho user object
+//		userDetail.setEmail(subjectToken[1]); // thiết lập email từ subject của jwt token cho user object
+//		
+//		return userDetail; 
+//	}
+
+	// getUserDetails used to authen and author
 	private UserDetails getUserDetails(String token) {
 		User userDetail = new User(); // tạo đối tượng user để thiết lập thuộc tính để trả về khi phân tích jwt token
-		String[] subjectToken = jwtTokenUtil.getSubject(token).split(","); // vì subject của token được tạo ra với chuỗi ghép giữa id,email (VD: 1,thien@gmail.com)
+		Claims claims = jwtTokenUtil.parseClaims(token);
+		String subject = (String) claims.get(Claims.SUBJECT);
+		String roles = (String) claims.get("roles");
 		
-		userDetail.setId(Integer.parseInt(subjectToken[0])); // thiết lập id từ subject của jwt token cho user object
-		userDetail.setEmail(subjectToken[1]); // thiết lập email từ subject của jwt token cho user object
+		roles = roles.replace("[", "").replace("]", "");
+		String[] rolesName = roles.split(",");
 		
-		return userDetail; 
+		for (String aRolesName : rolesName) {
+			userDetail.addRole(new Role(aRolesName));
+		}
+		
+		String[] jwtSubject = subject.split(",");
+		
+		userDetail.setId(Integer.parseInt(jwtSubject[0])); // thiết lập id từ subject của jwt token cho user object
+		userDetail.setEmail(jwtSubject[1]); // thiết lập email từ subject của jwt token cho user object
+
+		return userDetail;
 	}
 }

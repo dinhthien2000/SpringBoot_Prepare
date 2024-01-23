@@ -36,15 +36,27 @@ public class JwtTokenUtil {
 		return Keys.hmacShaKeyFor(Base64.getDecoder().decode(SECRET_KEY));
 	}
 
-	// JJwt need Key object to set signWith method
-	public String generateAccessToken(User user) {
-		Map<String, Object> claims = new HashMap<>();
-		return Jwts.builder().setClaims(claims).setSubject(String.format("%s,%s", user.getId(), user.getEmail()))
-				.setIssuer("NdtJava").setIssuedAt(new Date())
-				.setExpiration(new Date(System.currentTimeMillis() + EXPIRE_DURATION))
-				.signWith(key(), SignatureAlgorithm.HS512).compact();
-	}
+	// Jwt need Key object to set signWith method (only authen)
+//	public String generateAccessToken(User user) {
+//		Map<String, Object> claims = new HashMap<>();
+//		return Jwts.builder().setClaims(claims).setSubject(String.format("%s,%s", user.getId(), user.getEmail()))
+//				.setIssuer("NdtJava").setIssuedAt(new Date())
+//				.setExpiration(new Date(System.currentTimeMillis() + EXPIRE_DURATION))
+//				.signWith(key(), SignatureAlgorithm.HS512).compact();
+//	}
 
+	// JWT authen and author
+	public String generateAccessToken(User user) {
+		return Jwts.builder()
+				.setSubject(String.format("%s,%s", user.getId(), user.getEmail()))
+				.setIssuer("NdtJava")
+				.claim("roles", user.getRoles().toString())
+				.setIssuedAt(new Date())
+				.setExpiration(new Date(System.currentTimeMillis() + EXPIRE_DURATION))
+				.signWith(key(), SignatureAlgorithm.HS512)
+				.compact();
+	}
+	
 	/*
 	 * validateAccessToken(): used to verify a given JWT. It returns true if the JWT is verified, or false otherwise.
 	 * getSubject(): gets the value of the subject field of a given token. The subject contains User ID and email, which will be used to recreate a User object

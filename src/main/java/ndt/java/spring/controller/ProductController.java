@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.validation.Valid;
 
 import ndt.java.spring.enties.Product;
@@ -24,6 +25,7 @@ public class ProductController {
 	private ProductRepository repository;
 	
 	@PostMapping
+	@RolesAllowed({"EDITOR", "ADMIN"})
 	// ResponseEntity<?> với <?> is a shorthand for <? extends Object>, viết tắt
 	public ResponseEntity<?> create(@RequestBody @Valid Product product) {
 		repository.save(product);
@@ -34,6 +36,7 @@ public class ProductController {
 	}
 	
 	@GetMapping
+	@RolesAllowed({"CUSTOMER", "EDITOR", "ADMIN"} )
 	public List<Product> list() {
 		return repository.findAll();
 	}
